@@ -178,7 +178,7 @@ class Parser:
             "NOTE: Ensure program is focused so scanner's input is fed to this script.\n"+
             "1) Type start, then press enter.\n"+
             "2) Enter a file name.\n"+
-            "3) Scan a bin\n"+
+            "3) Scan a bin.\n"+
             "4) Scan items in bin.\n"+
             "5) Type 'exit' once all items are scanned.\n"+
             "Once exited, the file will be created in the directory this file was run in.\n\n"+
@@ -189,7 +189,3 @@ class Parser:
 if __name__ == "__main__":
     parse = Parser()
     parse.cmdParse()
-
-
-
-
