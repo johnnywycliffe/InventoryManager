@@ -15,6 +15,8 @@ If an item is missed, re-scan bin and scan only the missed items
 
 Press Exit to quit"""
 
+parse = inventory.Parser()
+
 # Button Behavior===============================================================
 def startFunc():
     #Reconfigure active elements
@@ -40,7 +42,7 @@ def createFunc():
     data = scrBox.get('1.0','end-1c')
     fileName = filename.get()
     #Give data to parser
-    
+    parse.batchParse(fileName,data)
     #Clean up and reset
     scrBox.delete(1.0,tk.END)
     scrBox.configure(state='disabled')
