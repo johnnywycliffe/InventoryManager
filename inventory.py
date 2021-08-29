@@ -55,16 +55,11 @@ class Inventory:
             item: a string of text
         """
         #error checking
-        if newBin is None:
-            print("Scan a bin before scanning an item")
-            return
         if item is None:
             print("Invalid input - item is none")
             return
         # Add item to bin
         newBin.addItem(item)
-        #Show user task completed
-        print("Item "+item+" was added to bin "+newBin.name)
     
     def addBin(self, name):
         """ grabs bin by name. If bin doesn't exist, adds it then returns it.
@@ -97,28 +92,61 @@ class Inventory:
             writer.writerow(["Bin","Part number","Quantity"])
             #Write each row
             for i in self.binList:
-                for j in i.items:
-                    writer.writerow([i.name,j,i.items[j]])
+                #add a1 empty bin if needed
+                if len(i.items) == 0 and i.name != "No bin provided":
+                    writer.writerow([i.name,"No items provided"])
+                else:
+                    for j in i.items:
+                        writer.writerow([i.name,j,i.items[j]])
+                #Add a space
                 writer.writerow([])
-    
+
     def setFileName(self,name):
         """ Sets the file name to be written """
         self.fileName = name
 
 class Parser:
     """ Handles input from the user and scanner
-        Parse(Inventory, Bins): Takes in input from the user to generate file
-        printHelp: Prints help dialogue
+        batchParse(str,str): Takes in a file name and data and creates CSV
+        cmdParse(): Command line parser for non-gui systems
+        printHelp: Prints help dialogue for cmdParse
     """
-    def Parse(self,inv, activeBin):
-        """ Parser for text input
-            inv: the inventory object.
-            activeBin: Current bin being used.
+    def __init__(self):
+        #Set up necessary classes
+        self.inv = Inventory()
+        #Create catch bin and add to inv
+        self.activeBin = self.inv.addBin("No bin provided")
+   
+    def batchParse(self,filename,data):
+        """ Converts data to CSV
+            filename: String for the filename
+            data: List of items seperated by newlines
         """
+        #Cut up by newline
+        split = data.splitlines()
+        #Sort
+        for i in split:
+            if i == "":
+                continue
+            elif i[0].isalpha():
+                self.activeBin = self.inv.addBin(i)
+            elif i[0].isnumeric():
+                self.inv.addItem(self.activeBin,i)
+            else:
+                continue
+        #Check filename
+        if filename == "":
+            filename = "inventory"
+        #Send to CSV
+        self.inv.setFileName(filename)
+        self.inv.writeBins()
+            
+    def cmdParse(self):
+        """ Parser for the command line """
         ended = False
         active = False
-        inputString = "Please enter 'Start' to begin scanning, 'Help' for help, and 'Exit' to quit program.\n"
         print("Inventory Manager Ver "+version+".\nWritten by Jeremy Stintzcum, copyright 2021.\n")
+        inputString = "Please enter 'Start' to begin scanning, 'Help' for help, and 'Exit' to quit program.\n"
         while not ended:
             inp = input(inputString)
             if inp == "": #Empty string
@@ -126,21 +154,22 @@ class Parser:
             elif inp.lower() == "help": #Provides help dialogue
                 self.printHelp()
             elif inp.lower() == "start": #Begins the scanner
-                inv.setFileName(input("Enter file name:"))
+                self.inv.setFileName(input("Enter file name:"))
                 inputString = "Start by scanning a bin, then the items in that bin.\n"
                 active = True
             elif inp.lower() == "exit": #exits the program
-                inv.printBins()
+                self.inv.printBins()
                 inp = input("Save file? yes/No\n") #allow users not to save files in case of junk
                 if active and inp.lower()[0] == 'y':
-                    inv.writeBins()
+                    self.inv.writeBins()
                 ended = True
             elif inp[0].isalpha() and active: #Bins start wit a letter
-                activeBin = inv.addBin(inp)
+                self.activeBin = self.inv.addBin(inp)
                 print("Bin '"+inp+"' selected.")
                 inputString = "Scan an item, or scan a different bin.\n"
             elif inp[0].isnumeric() and active: #Parts start with a number
-                inv.addItem(activeBin,inp)
+                self.inv.addItem(self.activeBin,inp)
+                print("Item '"+inp+"' was added to bin '"+self.activeBin.name+"'")
             else:
                 print("Invalid input.")
     
@@ -158,8 +187,9 @@ class Parser:
 
 # Main function
 if __name__ == "__main__":
-    inv = Inventory()
     parse = Parser()
-    activeBin = None
-    parse.Parse(inv,activeBin)
+    parse.cmdParse()
+
+
+
 
